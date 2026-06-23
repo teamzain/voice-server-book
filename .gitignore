@@ -1,0 +1,18 @@
+# Secrets — NEVER commit
+.env
+.env.local
+*.pem
+google-cloud.json
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Runtime artifacts
+_diagnostics/
+_srv.log
+_smoke_req.json
+*.log

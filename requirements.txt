@@ -1,0 +1,23 @@
+# Web
+flask==3.1.0
+flask-cors==5.0.1
+gunicorn==23.0.0
+python-dotenv==1.0.1
+
+# Claude vision (book identification)
+anthropic>=0.49.0
+
+# Validation / schema
+pydantic==2.10.6
+
+# Image processing (cover detect / crop / deskew / enhance)
+opencv-python-headless==4.11.0.86
+Pillow==11.1.0
+numpy==2.2.3
+
+# HTTP client for catalog APIs (Google Books, Open Library)
+requests==2.32.3
+
+# Optional book-cover object detection (AGPL-3.0). Enable only when licensing is
+# approved: set YOLO_BOOK_COVER_ENABLED=1 and YOLO_BOOK_MODEL=/path/to/model.pt
+# ultralytics==8.3.232
