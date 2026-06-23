@@ -33,11 +33,14 @@ def run(image_bytes: bytes, cfg: Config, system_prompt: str, user_prompt: str) -
     client = _get_client(cfg)
     b64 = base64.standard_b64encode(image_bytes).decode("ascii")
 
+    # Reading a cover is a perception + knowledge task — it doesn't need extended
+    # thinking. Keep it fast (no thinking, low effort, small output) so Claude is a
+    # snappy fallback when the free providers are rate-limited.
     response = client.messages.parse(
         model=cfg.model_id,
-        max_tokens=8000,
-        thinking={"type": "adaptive"},
-        output_config={"effort": cfg.identify_effort},
+        max_tokens=2000,
+        thinking={"type": "disabled"},
+        output_config={"effort": "low"},
         output_format=CoverGuess,
         system=system_prompt,
         messages=[

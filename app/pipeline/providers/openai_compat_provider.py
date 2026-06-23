@@ -33,8 +33,8 @@ log = logging.getLogger(__name__)
 # before moving on, so a single hanging model can't stall the whole scan.
 _RETRYABLE_5XX = {500, 502, 503}
 _ATTEMPTS_PER_MODEL = 1
-_VISION_TIMEOUT = 25
-_SUMMARY_TIMEOUT = 15
+_VISION_TIMEOUT = 12
+_SUMMARY_TIMEOUT = 12
 
 JSON_HINT = """\
 Respond with ONLY a JSON object (no markdown, no code fences) of this exact shape:
