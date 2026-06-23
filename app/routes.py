@@ -74,3 +74,47 @@ def identify():
         return jsonify({"status": "error", "message": str(exc)}), 500
 
     return jsonify(response.model_dump(exclude_none=False))
+
+
+@bp.get("/youtube_search")
+def youtube_search():
+    """Find a YouTube review video for a book (no API key — scrapes search HTML).
+
+    Used by the app's book result modal to embed a "Video Review".
+    """
+    import re
+
+    import requests
+
+    q = (request.args.get("q") or "").strip()
+    if not q:
+        return jsonify({"video_id": None, "embed_url": None})
+    try:
+        r = requests.get(
+            "https://www.youtube.com/results",
+            params={"search_query": q, "sp": "EgIQAQ%3D%3D"},  # filter: type = Video
+            headers={
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                    "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+                ),
+                "Accept-Language": "en-US,en;q=0.9",
+            },
+            timeout=8,
+        )
+        r.raise_for_status()
+        ids = re.findall(r'"videoId":"([\w-]{11})"', r.text)
+        vid = ids[0] if ids else None
+    except requests.RequestException as exc:
+        log.warning("youtube_search failed: %s", exc)
+        vid = None
+
+    return jsonify(
+        {
+            "video_id": vid,
+            "embed_url": f"https://www.youtube.com/embed/{vid}" if vid else None,
+            "watch_url": f"https://www.youtube.com/watch?v={vid}" if vid else None,
+            "search_url": "https://www.youtube.com/results?search_query="
+            + requests.utils.quote(q),
+        }
+    )
