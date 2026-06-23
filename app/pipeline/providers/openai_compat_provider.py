@@ -39,8 +39,9 @@ _SUMMARY_TIMEOUT = 15
 JSON_HINT = """\
 Respond with ONLY a JSON object (no markdown, no code fences) of this exact shape:
 {"is_book_cover": true, "visible_text": "", "title": "", "author": "", "series": "",
- "language": "", "confidence": 0.0,
- "candidates": [{"title": "", "author": "", "confidence": 0.0}], "notes": ""}"""
+ "language": "", "synopsis": "", "confidence": 0.0,
+ "candidates": [{"title": "", "author": "", "confidence": 0.0}], "notes": ""}
+"synopsis" is a 2-3 sentence overview of what the book is about."""
 
 
 def _backoff(attempt: int) -> float:

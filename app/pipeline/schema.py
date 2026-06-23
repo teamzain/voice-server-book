@@ -44,6 +44,15 @@ class CoverGuess(BaseModel):
     )
     series: str = Field(default="", description="Series name, if shown.")
     language: str = Field(default="", description="Primary language of the cover text.")
+    synopsis: str = Field(
+        default="",
+        description=(
+            "A 2-3 sentence engaging overview of what this book is about. Use your "
+            "knowledge of the book if you recognize it; otherwise infer from the "
+            "cover's imagery, title, subtitle, and tagline (e.g. 'This cover "
+            "suggests a story about...')."
+        ),
+    )
     confidence: float = Field(
         description="0..1 confidence in the title/author above. Be honest; low when unsure."
     )

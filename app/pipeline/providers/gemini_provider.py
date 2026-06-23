@@ -79,6 +79,7 @@ _COVER_SCHEMA = {
         "author": {"type": "STRING"},
         "series": {"type": "STRING"},
         "language": {"type": "STRING"},
+        "synopsis": {"type": "STRING"},
         "confidence": {"type": "NUMBER"},
         "candidates": {
             "type": "ARRAY",
@@ -99,6 +100,7 @@ _COVER_SCHEMA = {
         "visible_text",
         "title",
         "author",
+        "synopsis",
         "confidence",
         "candidates",
         "notes",

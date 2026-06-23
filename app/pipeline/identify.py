@@ -39,6 +39,9 @@ Your job, for ANY book in any language:
    sure, return a LOW confidence and leave `title`/`author` empty rather than
    guessing a book that may not exist. Never invent a title to fill the field.
 5. Set `is_book_cover` false if the image is not a book (e.g. a wall, a person).
+6. Write a `synopsis`: 2-3 engaging sentences on what the book is about. If you
+   recognize the book, summarize it; otherwise infer from the cover's imagery,
+   title, subtitle, and tagline (e.g. "This cover suggests a story about...").
 
 Do not output ISBNs, descriptions, prices, or store/library UI text as the title —
 those are handled separately. Distinguish the author from blurb authors quoted in
@@ -50,16 +53,44 @@ USER_PROMPT = (
 )
 
 
-def identify_cover(image_bytes: bytes, cfg: Config) -> tuple[CoverGuess, str]:
-    """Run the configured vision provider on a (cropped) cover image.
+_RUNNERS = {
+    "gemini": gemini_provider,
+    "openai": openai_compat_provider,
+    "claude": claude_provider,
+}
 
-    Returns (guess, provider_name).
+
+def _provider_chain(cfg: Config) -> list[str]:
+    """Resolved provider first, then any other provider with a key — so a quota
+    or outage on one transparently falls through to the next."""
+    has_key = {
+        "gemini": bool(cfg.gemini_api_key),
+        "openai": bool(cfg.openai_compat_api_key),
+        "claude": bool(cfg.anthropic_api_key),
+    }
+    order = [cfg.resolved_provider()] + ["openai", "gemini", "claude"]
+    chain: list[str] = []
+    for p in order:
+        if p not in chain and has_key.get(p):
+            chain.append(p)
+    return chain
+
+
+def identify_cover(image_bytes: bytes, cfg: Config) -> tuple[CoverGuess, str]:
+    """Run the vision providers (with cross-provider fallback) on a cover image.
+
+    Returns (guess, provider_name_that_succeeded).
     """
-    provider = cfg.resolved_provider()
-    if provider == "gemini":
-        guess = gemini_provider.run(image_bytes, cfg, SYSTEM_PROMPT, USER_PROMPT)
-    elif provider == "openai":
-        guess = openai_compat_provider.run(image_bytes, cfg, SYSTEM_PROMPT, USER_PROMPT)
-    else:
-        guess = claude_provider.run(image_bytes, cfg, SYSTEM_PROMPT, USER_PROMPT)
-    return guess.clamped(), provider
+    chain = _provider_chain(cfg)
+    if not chain:
+        raise RuntimeError("No vision provider key configured.")
+
+    last_exc: Exception | None = None
+    for provider in chain:
+        try:
+            guess = _RUNNERS[provider].run(image_bytes, cfg, SYSTEM_PROMPT, USER_PROMPT)
+            return guess.clamped(), provider
+        except Exception as exc:  # noqa: BLE001 - fall through to the next provider
+            log.warning("vision provider '%s' failed, trying next: %s", provider, exc)
+            last_exc = exc
+    raise last_exc or RuntimeError("All vision providers failed.")
